@@ -4,16 +4,13 @@ This is a sbt plugin which support generating pom.xml.
 
 ## How to use
 
-First you clone and publish to local.
 
-    > sbt
-    @sbt console
-    > publish-local
-
-Then you set plugin setting to your sbt setting.
 You make project/plugins.sbt file, and addbelow.
 
     addSbtPlugin("com.geishatokyo.sbt.plugin" % "pom-gen-plugin" % "0.1")
+    
+    resolvers += "takezoux2@github" at "http://takezoux2.github.com/repos"
+
 
 
 ## Commands
