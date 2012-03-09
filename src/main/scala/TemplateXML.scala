@@ -1,3 +1,4 @@
+package pomgen
 
 
 object TemplateXML{

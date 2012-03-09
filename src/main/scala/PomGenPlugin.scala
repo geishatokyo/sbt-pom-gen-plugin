@@ -1,3 +1,5 @@
+package pomgen
+
 import sbt._
 import Keys._
 
@@ -12,19 +14,26 @@ import scala.collection.immutable.HashSet
 /**
  * plugin for generating pom
  */ 
-object GeneratePomPlugin extends Plugin{
+object Plugin extends sbt.Plugin{
+  
+  object PomGenKeys{
+    val pomName = SettingKey[String]("pomName","set pom filename.default:pom.xml")
+    val composePomTaskKey = TaskKey[Elem]("compose-pom","compose genereated pom and existing pom")
+    
+  }
+  
+  import PomGenKeys._
   
   
   override lazy val settings = Seq(
     composePomTask,
-    generatePomtask,
+    generatePomTask,
     pomName := "pom.xml"
     /*commands ++= Seq(
       genPom
     )*/
   )
   
-  val pomName = SettingKey[String]("pomName","set pom filename.default:pom.xml")
   
   def backupPom( baseDir : File,pomName : String) = {
     val f = new java.io.File(baseDir,pomName)
@@ -72,7 +81,6 @@ object GeneratePomPlugin extends Plugin{
   }
   
   
-  val composePomTaskKey = TaskKey[Elem]("compose-pom","compose genereated pom and existing pom")
   
   val composePomTask = composePomTaskKey <<= (scalaVersion,makePom,pomName,baseDirectory) map{ (scalaVersion,generatedPomFile,pomName,baseDir) => {
     val generatedPom = XML.loadFile(generatedPomFile)
@@ -108,7 +116,7 @@ object GeneratePomPlugin extends Plugin{
     replaceScalaVersionProperty(composed,scalaVersion)
   }}
   
-  val generatePomtask = TaskKey[Unit]("gen-pom","generate and save pom") <<= (composePomTaskKey,pomName,baseDirectory) map{ (composedPom ,pomName, baseDir) => {
+  val generatePomTask = TaskKey[Unit]("gen-pom","generate and save pom") <<= (composePomTaskKey,pomName,baseDirectory) map{ (composedPom ,pomName, baseDir) => {
     
     backupPom(baseDir,pomName)
     
