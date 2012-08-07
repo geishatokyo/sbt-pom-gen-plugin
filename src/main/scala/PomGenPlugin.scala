@@ -14,18 +14,19 @@ import scala.collection.immutable.HashSet
 /**
  * plugin for generating pom
  */ 
-object Plugin extends sbt.Plugin{
+object PomGenPlugin extends sbt.Plugin{
   
   object PomGenKeys{
-    val pomName = SettingKey[String]("pomName","set pom filename.default:pom.xml")
-    val composePomTaskKey = TaskKey[Elem]("compose-pom","compose genereated pom and existing pom")
+    val pomName = SettingKey[String]("pom-name","set pom filename.default:pom.xml")
+    val generatePomTaskKey = TaskKey[Unit]("gen-pom","generate and save pom")
+    val composePomTaskKey = TaskKey[Elem]("compose-pom","task:compose genereated pom and existing pom")
     
   }
   
   import PomGenKeys._
   
   
-  override lazy val settings = Seq(
+  lazy val pomGenSettings = Seq(
     composePomTask,
     generatePomTask,
     pomName := "pom.xml"
@@ -77,7 +78,6 @@ object Plugin extends sbt.Plugin{
   
   def replaceScalaVersionProperty( pom : Elem , scalaVersion : String) : Elem = {
     new RuleTransformer(ScalaVersionPropRep(scalaVersion))(pom).asInstanceOf[Elem]
-  
   }
   
   
@@ -104,7 +104,6 @@ object Plugin extends sbt.Plugin{
     
     val composed = basePom match{
       case Elem(prefix,label , metaData , nb , children@_*) => {
-            
         val genChildren = fixNamespace(generatedPom,nb).child
         Elem(prefix, label, metaData, nb, mergeChilren(genChildren,children) :_*)
       }
@@ -116,11 +115,11 @@ object Plugin extends sbt.Plugin{
     replaceScalaVersionProperty(composed,scalaVersion)
   }}
   
-  val generatePomTask = TaskKey[Unit]("gen-pom","generate and save pom") <<= (composePomTaskKey,pomName,baseDirectory) map{ (composedPom ,pomName, baseDir) => {
+  val generatePomTask = generatePomTaskKey <<= (composePomTaskKey,pomName,baseDirectory) map{ (composedPom ,pomName, baseDir) => {
     
     backupPom(baseDir,pomName)
     
-    XML.save(new File(baseDir,"pom.xml").getAbsolutePath,composedPom)
+    XML.save(new File(baseDir,pomName).getAbsolutePath,composedPom)
   
   }}
     
